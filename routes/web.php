@@ -53,7 +53,7 @@ Route::get('/produk/{slug}', function ($slug) {
         ->firstOrFail();
 
     $canonical = route('produk.detail', $product->slug);
-    $seoTitle = "{$product->name} - Detail Produk VISTORA";
+    $seoTitle = "{$product->name} - VISTORA";
     $seoDescription = $product->description
         ? str($product->description)->limit(155)->toString()
         : "Lihat detail {$product->name} di VISTORA, mulai dari harga, spesifikasi, dan link marketplace resmi.";

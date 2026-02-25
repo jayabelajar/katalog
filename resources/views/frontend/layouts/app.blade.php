@@ -23,7 +23,7 @@
     <meta name="twitter:image" content="@yield('twitter_image', trim($__env->yieldContent('og_image', 'https://picsum.photos/seed/vistora-og/1200/630')))">
     <script type="application/ld+json">
         {
-            "@context": "https://schema.org",
+            "@@context": "https://schema.org",
             "@type": "WebSite",
             "name": "VISTORA",
             "url": "{{ url('/') }}",
