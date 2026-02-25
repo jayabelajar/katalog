@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Livewire\Public;
+
+use App\Models\Product;
+use App\Models\ProductView;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
+use Livewire\Component;
+
+class ProductDetail extends Component
+{
+    public string $slug;
+
+    public Product $product;
+
+    public string $visitorToken;
+
+    public array $marketplaceLinks = [];
+
+    public array $galleryImages = [];
+
+    public function mount(string $slug): void
+    {
+        $this->slug = $slug;
+        $this->visitorToken = session('visitor_token', (string) Str::uuid());
+        session(['visitor_token' => $this->visitorToken]);
+
+        $this->product = Product::query()
+            ->select([
+                'id',
+                'category_id',
+                'name',
+                'slug',
+                'description',
+                'price',
+                'original_price',
+                'sold_count',
+                'view_count',
+                'likes_count',
+            ])
+            ->where('slug', $this->slug)
+            ->where('status', true)
+            ->with([
+                'category:id,name',
+                'images' => fn ($query) => $query
+                    ->select('id', 'product_id', 'image', 'is_primary')
+                    ->orderByDesc('is_primary')
+                    ->orderBy('id'),
+                'marketplaceLinks:id,product_id,marketplace,url',
+            ])
+            ->firstOrFail();
+
+        $this->marketplaceLinks = $this->product->marketplaceLinks
+            ->mapWithKeys(fn ($item) => [Str::lower($item->marketplace) => $item->url])
+            ->toArray();
+
+        $this->galleryImages = $this->product->images
+            ->pluck('image')
+            ->filter()
+            ->values()
+            ->all();
+
+        $this->trackView();
+    }
+
+    public function render(): View
+    {
+        return view('livewire.public.product-detail');
+    }
+
+    private function trackView(): void
+    {
+        $existing = ProductView::query()
+            ->where('product_id', $this->product->id)
+            ->where('visitor_token', $this->visitorToken)
+            ->first();
+
+        if ($existing) {
+            $existing->increment('view_count');
+            $existing->update([
+                'last_viewed_at' => now(),
+                'ip_address' => request()->ip(),
+                'user_agent' => Str::limit((string) request()->userAgent(), 255, ''),
+            ]);
+        } else {
+            ProductView::query()->create([
+                'product_id' => $this->product->id,
+                'visitor_token' => $this->visitorToken,
+                'view_count' => 1,
+                'last_viewed_at' => now(),
+                'ip_address' => request()->ip(),
+                'user_agent' => Str::limit((string) request()->userAgent(), 255, ''),
+            ]);
+        }
+
+        Product::query()->whereKey($this->product->id)->increment('view_count');
+        $this->product->view_count++;
+    }
+}
