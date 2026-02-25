@@ -1,20 +1,28 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\MarketplaceLinkController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('frontend.home');
+})->name('home');
+
+Route::get('/katalog', function () {
+    return view('frontend.katalog');
+})->name('katalog');
+
+Route::get('/produk/{slug}', function ($slug) {
+    return view('frontend.detail', compact('slug'));
+})->name('produk.detail');
+
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('/setting', SettingController::class)->only(['index', 'store', 'update']);
+    Route::resource('/kategori', CategoryController::class);
+    Route::resource('/produk', ProductController::class);
+    Route::resource('/marketplace-link', MarketplaceLinkController::class);
 });
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-require __DIR__.'/auth.php';
