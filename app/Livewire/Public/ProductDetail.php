@@ -5,6 +5,7 @@ namespace App\Livewire\Public;
 use App\Models\Product;
 use App\Models\ProductView;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
@@ -19,6 +20,8 @@ class ProductDetail extends Component
     public array $marketplaceLinks = [];
 
     public array $galleryImages = [];
+
+    public $relatedProducts;
 
     public function mount(string $slug): void
     {
@@ -62,6 +65,20 @@ class ProductDetail extends Component
             ->all();
 
         $this->trackView();
+
+        $this->relatedProducts = Cache::remember(
+            "public.product.related.{$this->product->id}",
+            now()->addMinutes(10),
+            fn () => Product::query()
+                ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+                ->where('status', true)
+                ->where('category_id', $this->product->category_id)
+                ->where('id', '!=', $this->product->id)
+                ->with(['primaryImage:id,product_id,image'])
+                ->orderByDesc('sold_count')
+                ->limit(4)
+                ->get()
+        );
     }
 
     public function render(): View

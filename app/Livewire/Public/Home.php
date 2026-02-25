@@ -79,7 +79,7 @@ class Home extends Component
             'public.home.popular_categories',
             now()->addMinutes(10),
             fn () => Category::query()
-                ->select('id', 'name')
+                ->select('id', 'name', 'slug')
                 ->withCount([
                     'products as active_products_count' => fn ($query) => $query->where('status', true),
                 ])
@@ -99,6 +99,22 @@ class Home extends Component
             ->limit(4)
             ->get();
 
+        $flashSaleProducts = Product::query()
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->where('status', true)
+            ->where(function ($query) {
+                $query->where('is_featured', true)
+                    ->orWhereColumn('original_price', '>', 'price');
+            })
+            ->with([
+                'category:id,name',
+                'primaryImage:id,product_id,image',
+            ])
+            ->orderByRaw('(original_price - price) DESC')
+            ->orderByDesc('sold_count')
+            ->limit(4)
+            ->get();
+
         $newProducts = Product::query()
             ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
             ->where('status', true)
@@ -113,6 +129,7 @@ class Home extends Component
         if (! $this->hasTrackedViews) {
             $trackedProductIds = $bestSellerProducts
                 ->pluck('id')
+                ->merge($flashSaleProducts->pluck('id'))
                 ->merge($newProducts->pluck('id'))
                 ->unique()
                 ->values();
@@ -121,6 +138,12 @@ class Home extends Component
             $this->hasTrackedViews = true;
 
             $bestSellerProducts->each(function (Product $product) use ($trackedProductIds): void {
+                if ($trackedProductIds->contains($product->id)) {
+                    $product->view_count++;
+                }
+            });
+
+            $flashSaleProducts->each(function (Product $product) use ($trackedProductIds): void {
                 if ($trackedProductIds->contains($product->id)) {
                     $product->view_count++;
                 }
@@ -136,6 +159,7 @@ class Home extends Component
         return view('livewire.public.home', [
             'popularCategories' => $popularCategories,
             'bestSellerProducts' => $bestSellerProducts,
+            'flashSaleProducts' => $flashSaleProducts,
             'newProducts' => $newProducts,
         ]);
     }

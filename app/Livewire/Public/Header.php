@@ -3,6 +3,7 @@
 namespace App\Livewire\Public;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -21,7 +22,6 @@ class Header extends Component
         ['label' => 'Track Order', 'icon' => 'fa-box', 'url' => '#', 'route' => null],
         ['label' => 'Return & Refund', 'icon' => 'fa-undo', 'url' => '#', 'route' => null],
         ['label' => 'Shipping Info', 'icon' => 'fa-truck', 'url' => '#', 'route' => null],
-        ['label' => 'About Us', 'icon' => 'fa-info-circle', 'url' => '#', 'route' => null],
     ];
 
     public function mount(): void
@@ -30,10 +30,15 @@ class Header extends Component
             'public.header.categories',
             now()->addMinutes(10),
             fn () => Category::query()
-                ->select('name')
+                ->select('id', 'name', 'slug')
                 ->orderBy('name')
                 ->limit(12)
-                ->pluck('name')
+                ->get()
+                ->map(fn ($category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                ])
                 ->all()
         );
     }
@@ -41,6 +46,39 @@ class Header extends Component
     public function clearNotifications(): void
     {
         $this->notificationCount = 0;
+    }
+
+    public function goToSearch(): void
+    {
+        $query = trim($this->search);
+
+        if ($query === '') {
+            $this->redirectRoute('katalog');
+
+            return;
+        }
+
+        $this->redirectRoute('katalog', ['q' => $query]);
+    }
+
+    public function getSearchResultsProperty(): array
+    {
+        if ($this->search === '') {
+            return [];
+        }
+
+        return Product::query()
+            ->select('name', 'slug')
+            ->where('status', true)
+            ->where('name', 'like', '%' . $this->search . '%')
+            ->orderByDesc('view_count')
+            ->limit(8)
+            ->get()
+            ->map(fn (Product $product) => [
+                'name' => $product->name,
+                'url' => route('produk.detail', $product->slug),
+            ])
+            ->all();
     }
 
     public function getFilteredCategoriesProperty(): array
@@ -51,7 +89,7 @@ class Header extends Component
 
         return array_values(array_filter(
             $this->categories,
-            fn (string $category) => Str::contains(Str::lower($category), Str::lower($this->search))
+            fn (array $category) => Str::contains(Str::lower($category['name']), Str::lower($this->search))
         ));
     }
 

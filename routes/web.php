@@ -11,8 +11,16 @@ Route::get('/', function () {
     return view('frontend.home');
 })->name('home');
 
+Route::get('/kategori', function () {
+    return view('frontend.kategori');
+})->name('kategori');
+
+Route::get('/kategori/{slug}', function ($slug) {
+    return view('frontend.kategori-detail', compact('slug'));
+})->name('kategori.detail');
+
 Route::get('/produk', function () {
-    return view('frontend.katalog');
+    return view('frontend.produk');
 })->name('katalog');
 
 Route::redirect('/katalog', '/produk', 301);

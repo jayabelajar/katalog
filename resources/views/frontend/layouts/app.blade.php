@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
     <meta charset="utf-8">
@@ -51,7 +51,7 @@
             width: 10px;
             height: 10px;
             border-radius: 9999px;
-            background: #ef4444;
+            background: #2563eb;
             border: 2px solid #ffffff;
         }
         .blink {

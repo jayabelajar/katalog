@@ -12,24 +12,24 @@
             </button>
             <div x-show="open" x-transition class="absolute top-full left-0 mt-2 w-52 bg-white border rounded-2xl shadow-lg py-2 z-50">
                 @foreach($categories as $category)
-                    <a href="#" class="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">{{ $category }}</a>
+                    <a href="{{ route('kategori.detail', $category['slug']) }}" class="block px-4 py-2 hover:bg-gray-50 text-sm text-gray-700">{{ $category['name'] }}</a>
                 @endforeach
-                <a href="{{ route('katalog') }}" class="block px-4 py-2 hover:bg-gray-50 text-sm font-semibold text-primary">Explore kategori</a>
+                <a href="{{ route('kategori') }}" class="block px-4 py-2 hover:bg-gray-50 text-sm font-semibold text-primary">Explore kategori</a>
             </div>
         </div>
 
         <div class="hidden md:block flex-1 max-w-2xl relative" wire:click.stop>
-            <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search any products" class="w-full bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white rounded-full py-2.5 pl-5 pr-12 outline-none transition text-sm">
-            <button class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary" title="Cari">
+            <input wire:model.live.debounce.300ms="search" wire:keydown.enter="goToSearch" type="text" placeholder="Search any products" class="w-full bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white rounded-full py-2.5 pl-5 pr-12 outline-none transition text-sm">
+            <button wire:click="goToSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary" title="Cari">
                 <i class="fas fa-search"></i>
             </button>
 
             @if($search !== '')
                 <div class="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-lg z-40 overflow-hidden">
-                    @forelse($this->filteredCategories as $item)
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ $item }}</a>
+                    @forelse($this->searchResults as $item)
+                        <a href="{{ $item['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ $item['name'] }}</a>
                     @empty
-                        <div class="px-4 py-3 text-sm text-gray-500">Tidak ada kategori yang cocok.</div>
+                        <div class="px-4 py-3 text-sm text-gray-500">Produk tidak ditemukan.</div>
                     @endforelse
                 </div>
             @endif
@@ -43,10 +43,10 @@
             >
                 <i class="fas fa-search text-lg"></i>
             </button>
-            <button class="desktop-only header-icon-btn relative" title="Flash Sale">
-                <i class="fas fa-bolt text-lg sm:text-xl text-orange-500 blink"></i>
+            <a href="{{ route('home') }}#flash-sale" class="desktop-only header-icon-btn relative" title="Flash Sale">
+                <i class="fas fa-bolt text-lg sm:text-xl text-blue-600 blink"></i>
                 <span class="icon-dot blink"></span>
-            </button>
+            </a>
             <button wire:click="clearNotifications" class="header-icon-btn relative" title="Notifikasi">
                 <i class="far fa-bell text-lg sm:text-xl"></i>
                 @if($notificationCount > 0)
@@ -72,6 +72,7 @@
             <input
                 x-ref="mobileSearchInput"
                 wire:model.live.debounce.300ms="search"
+                wire:keydown.enter="goToSearch"
                 type="text"
                 placeholder="Search any products"
                 class="w-full bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white rounded-full py-2.5 pl-5 pr-10 outline-none transition text-sm"
@@ -82,10 +83,10 @@
         </div>
         @if($search !== '')
             <div class="mt-2 bg-white border border-gray-100 rounded-2xl shadow-lg overflow-hidden">
-                @forelse($this->filteredCategories as $item)
-                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ $item }}</a>
+                @forelse($this->searchResults as $item)
+                    <a href="{{ $item['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ $item['name'] }}</a>
                 @empty
-                    <div class="px-4 py-3 text-sm text-gray-500">Tidak ada kategori yang cocok.</div>
+                    <div class="px-4 py-3 text-sm text-gray-500">Produk tidak ditemukan.</div>
                 @endforelse
             </div>
         @endif
@@ -112,14 +113,14 @@
 
             <div class="mb-6">
                 <h4 class="text-xs font-bold uppercase text-gray-400 mb-2">Kategori</h4>
-                <div class="space-y-1">
+                <div class="grid grid-cols-2 gap-2">
                     @php
-                        $categoryIcons = ['fa-mobile-screen', 'fa-shirt', 'fa-headphones', 'fa-couch', 'fa-mobile-alt'];
+                        $categoryIcons = ['fa-mobile-screen', 'fa-shirt', 'fa-headphones', 'fa-couch', 'fa-mobile-alt', 'fa-tv', 'fa-gamepad', 'fa-camera'];
                     @endphp
                     @foreach($categories as $category)
-                        <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
-                            <i class="fas {{ $categoryIcons[$loop->index] ?? 'fa-box' }} text-primary w-4 text-center"></i>
-                            <span>{{ $category }}</span>
+                        <a href="{{ route('kategori.detail', $category['slug']) }}" class="flex flex-col items-center justify-center gap-1 px-2 py-3 rounded-xl text-xs text-gray-700 border border-gray-100 bg-gray-50 hover:border-primary hover:bg-primary-light transition text-center">
+                            <i class="fas {{ $categoryIcons[$loop->index % count($categoryIcons)] ?? 'fa-box' }} text-primary text-base"></i>
+                            <span class="font-semibold leading-tight">{{ $category['name'] }}</span>
                         </a>
                     @endforeach
                 </div>
@@ -127,10 +128,11 @@
 
             <div>
                 <h4 class="text-xs font-bold uppercase text-gray-400 mb-2">Navigasi</h4>
-                <div class="space-y-1">
+                <div class="grid grid-cols-2 gap-2">
                     @foreach($menus as $menu)
-                        <a href="{{ $menu['url'] }}" class="block px-3 py-2 rounded-xl text-sm {{ $menu['active'] ? 'text-primary bg-primary-light font-bold' : 'text-gray-700 hover:bg-gray-50' }}">
-                            <i class="fas {{ $menu['icon'] }} w-5"></i> {{ $menu['label'] }}
+                        <a href="{{ $menu['url'] }}" class="px-2 py-2 rounded-xl text-xs text-center {{ $menu['active'] ? 'text-primary bg-primary-light font-bold border border-primary/20' : 'text-gray-700 border border-gray-100 hover:bg-gray-50' }}">
+                            <i class="fas {{ $menu['icon'] }} block mb-1"></i>
+                            <span class="leading-tight inline-block">{{ $menu['label'] }}</span>
                         </a>
                     @endforeach
                 </div>
