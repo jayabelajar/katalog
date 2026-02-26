@@ -4,7 +4,6 @@ namespace App\Livewire\Public;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductLike;
 use App\Models\ProductView;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -16,61 +15,12 @@ class Home extends Component
 {
     public string $visitorToken;
 
-    public array $likedProductIds = [];
-
     public bool $hasTrackedViews = false;
 
     public function mount(): void
     {
         $this->visitorToken = session('visitor_token', (string) Str::uuid());
         session(['visitor_token' => $this->visitorToken]);
-
-        $this->likedProductIds = ProductLike::query()
-            ->where('visitor_token', $this->visitorToken)
-            ->pluck('product_id')
-            ->all();
-    }
-
-    public function toggleLike(int $productId): void
-    {
-        $product = Product::query()->select('id')->find($productId);
-
-        if (! $product) {
-            return;
-        }
-
-        $like = ProductLike::query()
-            ->where('product_id', $productId)
-            ->where('visitor_token', $this->visitorToken)
-            ->first();
-
-        if ($like) {
-            $like->delete();
-
-            Product::query()
-                ->whereKey($productId)
-                ->where('likes_count', '>', 0)
-                ->decrement('likes_count');
-
-            $this->likedProductIds = array_values(array_filter(
-                $this->likedProductIds,
-                fn (int $likedProductId) => $likedProductId !== $productId
-            ));
-
-            return;
-        }
-
-        ProductLike::query()->create([
-            'product_id' => $productId,
-            'visitor_token' => $this->visitorToken,
-            'ip_address' => request()->ip(),
-            'user_agent' => Str::limit((string) request()->userAgent(), 255, ''),
-        ]);
-
-        Product::query()->whereKey($productId)->increment('likes_count');
-
-        $this->likedProductIds[] = $productId;
-        $this->likedProductIds = array_values(array_unique($this->likedProductIds));
     }
 
     public function render(): View
@@ -89,7 +39,7 @@ class Home extends Component
         );
 
         $bestSellerProducts = Product::query()
-            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
             ->where('status', true)
             ->with([
                 'category:id,name',
@@ -100,7 +50,7 @@ class Home extends Component
             ->get();
 
         $flashSaleProducts = Product::query()
-            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
             ->where('status', true)
             ->where(function ($query) {
                 $query->where('is_featured', true)
@@ -116,7 +66,7 @@ class Home extends Component
             ->get();
 
         $newProducts = Product::query()
-            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
             ->where('status', true)
             ->with([
                 'category:id,name',
@@ -205,3 +155,4 @@ class Home extends Component
         Product::query()->whereIn('id', $productIds)->increment('view_count');
     }
 }
+

@@ -1,4 +1,30 @@
-﻿<header x-data="{ mobileMenu: false, mobileSearch: false }" class="fixed top-0 left-0 right-0 bg-white border-b z-50 shadow-sm">
+<header
+    x-data="{
+        mobileMenu: false,
+        mobileSearch: false,
+        lastScrollY: 0,
+        isDesktopMenuHidden: false,
+        init() {
+            this.lastScrollY = window.scrollY;
+            window.addEventListener('scroll', () => {
+                if (window.innerWidth < 768) {
+                    this.isDesktopMenuHidden = false;
+                    this.lastScrollY = window.scrollY;
+                    return;
+                }
+
+                const currentY = window.scrollY;
+                if (currentY <= 8) {
+                    this.isDesktopMenuHidden = false;
+                } else {
+                    this.isDesktopMenuHidden = currentY > this.lastScrollY;
+                }
+                this.lastScrollY = currentY;
+            }, { passive: true });
+        }
+    }"
+    class="fixed top-0 left-0 right-0 bg-white border-b z-50 shadow-sm"
+>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3 sm:gap-6">
         <a href="{{ route('home') }}" class="flex items-center gap-2 text-2xl font-black text-primary tracking-tighter italic">
             <i class="fas fa-compass"></i> VISTORA
@@ -75,8 +101,11 @@
                 wire:keydown.enter="goToSearch"
                 type="text"
                 placeholder="Search any products"
-                class="w-full bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white rounded-full py-2.5 pl-5 pr-10 outline-none transition text-sm"
+                class="w-full bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white rounded-full py-2.5 pl-5 pr-20 outline-none transition text-sm"
             >
+            <button wire:click="goToSearch" class="absolute right-10 top-1/2 -translate-y-1/2 text-gray-500 hover:text-primary" title="Cari">
+                <i class="fas fa-search"></i>
+            </button>
             <button @click="mobileSearch = false" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary" title="Tutup Pencarian">
                 <i class="fas fa-times"></i>
             </button>
@@ -92,7 +121,12 @@
         @endif
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 overflow-x-auto flex items-center gap-8 text-base font-bold text-gray-700 border-t hide-scrollbar">
+    <div
+        :class="isDesktopMenuHidden
+            ? 'md:max-h-0 md:py-0 md:opacity-0 md:pointer-events-none md:border-transparent'
+            : 'md:max-h-24 md:py-3.5 md:opacity-100'"
+        class="hidden md:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto items-center gap-8 text-base font-bold text-gray-700 border-t hide-scrollbar transition-all duration-300"
+    >
         @foreach($menus as $menu)
             <a href="{{ $menu['url'] }}" class="{{ $menu['active'] ? 'text-primary' : 'hover:text-primary' }} whitespace-nowrap flex items-center gap-2.5">
                 <i class="fas {{ $menu['icon'] }} text-base {{ $menu['active'] ? 'text-primary' : 'text-gray-500' }}"></i>
@@ -104,7 +138,7 @@
     <div x-cloak x-show="mobileMenu" class="md:hidden fixed inset-0 z-[60]">
         <div @click="mobileMenu = false" class="absolute inset-0 bg-black/40"></div>
         <aside class="absolute left-0 top-0 h-full w-72 bg-white shadow-xl p-5 overflow-y-auto">
-            <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
                 <a href="{{ route('home') }}" class="flex items-center gap-2 text-xl font-black text-primary tracking-tight italic">
                     <i class="fas fa-compass"></i> VISTORA
                 </a>

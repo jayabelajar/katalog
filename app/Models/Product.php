@@ -20,6 +20,8 @@ class Product extends Model
         'sold_count',
         'view_count',
         'likes_count',
+        'rating_avg',
+        'rating_count',
         'is_featured',
     ];
 
@@ -28,6 +30,7 @@ class Product extends Model
         'original_price' => 'decimal:2',
         'status' => 'boolean',
         'is_featured' => 'boolean',
+        'rating_avg' => 'decimal:1',
     ];
 
     public function category(): BelongsTo
@@ -60,3 +63,4 @@ class Product extends Model
         return $this->hasMany(ProductView::class);
     }
 }
+

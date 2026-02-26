@@ -20,8 +20,15 @@ class ProductsPage extends Component
     #[Url(as: 'kategori')]
     public ?string $categorySlug = null;
 
+    public function mount(): void
+    {
+        $this->search = trim((string) request()->query('q', $this->search));
+        $this->categorySlug = request()->query('kategori', $this->categorySlug);
+    }
+
     public function updatedSearch(): void
     {
+        $this->search = trim($this->search);
         $this->resetPage();
     }
 
@@ -39,6 +46,8 @@ class ProductsPage extends Component
 
     public function render(): View
     {
+        $searchTerm = trim($this->search);
+
         $categories = Cache::remember(
             'public.products.categories',
             now()->addMinutes(10),
@@ -51,9 +60,14 @@ class ProductsPage extends Component
         $selectedCategory = $categories->firstWhere('slug', $this->categorySlug);
 
         $products = Product::query()
-            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
             ->where('status', true)
-            ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%' . $this->search . '%'))
+            ->when($searchTerm !== '', function ($query) use ($searchTerm) {
+                $query->where(function ($subQuery) use ($searchTerm) {
+                    $subQuery->where('name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
+            })
             ->when($selectedCategory, fn ($query) => $query->where('category_id', $selectedCategory->id))
             ->with([
                 'category:id,name',
@@ -69,3 +83,4 @@ class ProductsPage extends Component
         ]);
     }
 }
+

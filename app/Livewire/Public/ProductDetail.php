@@ -40,7 +40,8 @@ class ProductDetail extends Component
                 'original_price',
                 'sold_count',
                 'view_count',
-                'likes_count',
+                'rating_avg',
+                'rating_count',
             ])
             ->where('slug', $this->slug)
             ->where('status', true)
@@ -70,7 +71,7 @@ class ProductDetail extends Component
             "public.product.related.{$this->product->id}",
             now()->addMinutes(10),
             fn () => Product::query()
-                ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+                ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
                 ->where('status', true)
                 ->where('category_id', $this->product->category_id)
                 ->where('id', '!=', $this->product->id)
@@ -115,3 +116,4 @@ class ProductDetail extends Component
         $this->product->view_count++;
     }
 }
+

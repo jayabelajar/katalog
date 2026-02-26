@@ -17,7 +17,7 @@ class Header extends Component
     public array $categories = [];
 
     public array $menus = [
-        ['label' => 'Homepage', 'icon' => 'fa-home', 'url' => '/', 'route' => 'home'],
+        ['label' => 'Beranda', 'icon' => 'fa-home', 'url' => '/', 'route' => 'home'],
         ['label' => 'Flash Deals', 'icon' => 'fa-bolt', 'url' => '#', 'route' => null],
         ['label' => 'Track Order', 'icon' => 'fa-box', 'url' => '#', 'route' => null],
         ['label' => 'Return & Refund', 'icon' => 'fa-undo', 'url' => '#', 'route' => null],
@@ -51,6 +51,7 @@ class Header extends Component
     public function goToSearch(): void
     {
         $query = trim($this->search);
+        $this->search = $query;
 
         if ($query === '') {
             $this->redirectRoute('katalog');
@@ -63,14 +64,19 @@ class Header extends Component
 
     public function getSearchResultsProperty(): array
     {
-        if ($this->search === '') {
+        $query = trim($this->search);
+
+        if ($query === '') {
             return [];
         }
 
         return Product::query()
             ->select('name', 'slug')
             ->where('status', true)
-            ->where('name', 'like', '%' . $this->search . '%')
+            ->where(function ($builder) use ($query) {
+                $builder->where('name', 'like', '%' . $query . '%')
+                    ->orWhere('description', 'like', '%' . $query . '%');
+            })
             ->orderByDesc('view_count')
             ->limit(8)
             ->get()

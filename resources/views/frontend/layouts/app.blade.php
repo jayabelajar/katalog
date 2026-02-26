@@ -127,7 +127,7 @@
 <body class="m-0 min-h-screen bg-gray-50 text-gray-800 font-sans antialiased">
     <livewire:public.header />
 
-    <main class="pt-[116px] md:pt-[132px] @yield('main_class')">
+    <main class="pt-[96px] md:pt-[132px] @yield('main_class')">
         @yield('content')
     </main>
 

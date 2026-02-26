@@ -23,6 +23,7 @@ class CategoryDetailPage extends Component
     public function mount(string $slug): void
     {
         $this->slug = $slug;
+        $this->search = trim((string) request()->query('q', $this->search));
         $this->category = Category::query()
             ->select('id', 'name', 'slug', 'description')
             ->where('slug', $this->slug)
@@ -31,16 +32,24 @@ class CategoryDetailPage extends Component
 
     public function updatedSearch(): void
     {
+        $this->search = trim($this->search);
         $this->resetPage();
     }
 
     public function render(): View
     {
+        $searchTerm = trim($this->search);
+
         $products = Product::query()
-            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'likes_count')
+            ->select('id', 'category_id', 'name', 'slug', 'price', 'original_price', 'sold_count', 'view_count', 'rating_avg', 'rating_count')
             ->where('status', true)
             ->where('category_id', $this->category->id)
-            ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%' . $this->search . '%'))
+            ->when($searchTerm !== '', function ($query) use ($searchTerm) {
+                $query->where(function ($subQuery) use ($searchTerm) {
+                    $subQuery->where('name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                });
+            })
             ->with(['primaryImage:id,product_id,image'])
             ->orderByDesc('id')
             ->paginate(8);
@@ -50,3 +59,4 @@ class CategoryDetailPage extends Component
         ]);
     }
 }
+

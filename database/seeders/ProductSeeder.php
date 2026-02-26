@@ -45,9 +45,12 @@ class ProductSeeder extends Seeder
                     'sold_count' => $item['sold_count'],
                     'view_count' => $item['view_count'],
                     'likes_count' => $item['likes_count'],
+                    'rating_count' => $item['likes_count'],
+                    'rating_avg' => min(5, round(4 + ($item['likes_count'] / 500), 1)),
                     'is_featured' => $item['is_featured'],
                 ]
             );
         }
     }
 }
+
