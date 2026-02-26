@@ -57,8 +57,8 @@
         </div>
 
         <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
+            <div class="w-full overflow-x-auto">
+                <table class="w-full min-w-[860px] lg:min-w-0 text-sm">
                     <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-600 dark:text-gray-300">
                         <tr>
                             <th class="px-4 py-3 text-left">Produk</th>

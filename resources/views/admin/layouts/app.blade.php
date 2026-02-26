@@ -19,8 +19,8 @@
     <style>[x-cloak]{display:none!important}</style>
     @livewireStyles
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-['Inter'] antialiased">
-    <div class="min-h-screen flex" x-data>
+<body class="h-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-['Inter'] antialiased overflow-x-hidden">
+    <div class="min-h-screen flex max-w-full overflow-x-hidden" x-data>
         <div
             x-show="$store.sidebar.isMobileOpen"
             x-cloak
@@ -29,13 +29,13 @@
         ></div>
         @include('admin.partials.sidebar')
 
-        <div class="flex-1 flex flex-col transition-all duration-300"
+        <div class="flex-1 flex flex-col min-w-0 transition-all duration-300"
             :class="{
                 'xl:ml-72': $store.sidebar.isExpanded,
                 'xl:ml-20': !$store.sidebar.isExpanded
             }">
             @include('admin.partials.topbar')
-            <main class="flex-1 p-4 md:p-8">
+            <main class="flex-1 p-4 md:p-8 max-w-full overflow-x-hidden">
                 @yield('content')
             </main>
             @include('admin.partials.footer')

@@ -54,6 +54,8 @@
         html, body {
             margin: 0;
             padding: 0;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         [x-cloak] { display: none !important; }
         .slide-transition { transition: transform 0.5s ease-in-out; }
@@ -124,10 +126,10 @@
     @stack('meta')
     @stack('styles')
 </head>
-<body class="m-0 min-h-screen bg-gray-50 text-gray-800 font-sans antialiased">
+<body class="m-0 min-h-screen bg-gray-50 text-gray-800 font-sans antialiased overflow-x-hidden">
     <livewire:public.header />
 
-    <main class="pt-[96px] md:pt-[132px] @yield('main_class')">
+    <main class="pt-[96px] md:pt-[132px] @yield('main_class') max-w-full overflow-x-hidden">
         @yield('content')
     </main>
 

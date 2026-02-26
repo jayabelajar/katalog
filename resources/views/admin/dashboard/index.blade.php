@@ -33,9 +33,6 @@
                 <a href="{{ route('admin.kategori.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                     <i class="ti ti-category text-base"></i> Kelola Kategori
                 </a>
-                <a href="{{ route('admin.marketplace-link.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                    <i class="ti ti-link text-base"></i> Kelola Marketplace
-                </a>
                 <a href="{{ route('admin.setting.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                     <i class="ti ti-settings text-base"></i> Pengaturan
                 </a>

@@ -12,16 +12,20 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $categories = Category::query()->latest('id')->paginate(10);
+        $editCategory = null;
+        if ($request->filled('edit')) {
+            $editCategory = Category::query()->find($request->integer('edit'));
+        }
 
-        return view('admin.categories.index', compact('categories'));
+        return view('admin.categories.index', compact('categories', 'editCategory'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        return view('admin.categories.create');
+        return redirect()->route('admin.kategori.index');
     }
 
     public function store(Request $request): RedirectResponse
@@ -44,9 +48,9 @@ class CategoryController extends Controller
         return redirect()->route('admin.kategori.edit', $kategori);
     }
 
-    public function edit(Category $kategori): View
+    public function edit(Category $kategori): RedirectResponse
     {
-        return view('admin.categories.edit', compact('kategori'));
+        return redirect()->route('admin.kategori.index', ['edit' => $kategori->id]);
     }
 
     public function update(Request $request, Category $kategori): RedirectResponse

@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\MarketplaceLinkController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -110,5 +109,4 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('/setting', SettingController::class)->only(['index', 'store', 'update']);
     Route::resource('/kategori', CategoryController::class);
     Route::resource('/produk', ProductController::class);
-    Route::resource('/marketplace-link', MarketplaceLinkController::class);
 });

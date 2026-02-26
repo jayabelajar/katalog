@@ -53,17 +53,6 @@
             <span x-show="$store.sidebar.isExpanded" x-cloak class="ml-3">Produk</span>
         </a>
 
-        <a href="{{ route('admin.marketplace-link.index') }}"
-           class="flex items-center rounded-xl px-3 py-3 text-sm font-semibold transition"
-           :class="$store.sidebar.isExpanded ? '' : 'justify-center'"
-           @class([
-               'bg-blue-600 text-white shadow-md shadow-blue-600/20' => request()->routeIs('admin.marketplace-link.*'),
-               'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900' => !request()->routeIs('admin.marketplace-link.*'),
-           ])>
-            <i class="ti ti-link text-xl"></i>
-            <span x-show="$store.sidebar.isExpanded" x-cloak class="ml-3">Marketplace</span>
-        </a>
-
         <a href="{{ route('admin.setting.index') }}"
            class="flex items-center rounded-xl px-3 py-3 text-sm font-semibold transition"
            :class="$store.sidebar.isExpanded ? '' : 'justify-center'"

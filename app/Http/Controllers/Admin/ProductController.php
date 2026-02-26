@@ -4,38 +4,54 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\MarketplaceLink;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $products = Product::query()
-            ->with('category:id,name')
+            ->with(['category:id,name', 'marketplaceLinks:id,product_id,marketplace,url'])
             ->latest('id')
             ->paginate(10);
 
-        return view('admin.products.index', compact('products'));
+        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+        $marketplaceOptions = ['Shopee', 'Tokopedia', 'Lazada', 'Blibli'];
+        $editProduct = null;
+
+        if ($request->filled('edit')) {
+            $editProduct = Product::query()
+                ->with('marketplaceLinks:id,product_id,marketplace,url')
+                ->find($request->integer('edit'));
+        }
+
+        return view('admin.products.index', compact('products', 'categories', 'marketplaceOptions', 'editProduct'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
-
-        return view('admin.products.create', compact('categories'));
+        return redirect()->route('admin.produk.index');
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validatePayload($request);
+        $links = $data['marketplace_links'] ?? [];
+        unset($data['marketplace_links']);
+
         $data['slug'] = $this->makeUniqueSlug($data['slug'] ?: $data['name']);
 
-        Product::query()->create($data);
+        DB::transaction(function () use ($data, $links) {
+            $product = Product::query()->create($data);
+            $this->syncMarketplaceLinks($product, $links);
+        });
 
         return redirect()->route('admin.produk.index')->with('status', 'Produk berhasil ditambahkan.');
     }
@@ -45,19 +61,23 @@ class ProductController extends Controller
         return redirect()->route('admin.produk.edit', $produk);
     }
 
-    public function edit(Product $produk): View
+    public function edit(Product $produk): RedirectResponse
     {
-        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
-
-        return view('admin.products.edit', compact('produk', 'categories'));
+        return redirect()->route('admin.produk.index', ['edit' => $produk->id]);
     }
 
     public function update(Request $request, Product $produk): RedirectResponse
     {
         $data = $this->validatePayload($request, $produk->id);
+        $links = $data['marketplace_links'] ?? [];
+        unset($data['marketplace_links']);
+
         $data['slug'] = $this->makeUniqueSlug($data['slug'] ?: $data['name'], $produk->id);
 
-        $produk->update($data);
+        DB::transaction(function () use ($produk, $data, $links) {
+            $produk->update($data);
+            $this->syncMarketplaceLinks($produk, $links);
+        });
 
         return redirect()->route('admin.produk.index')->with('status', 'Produk berhasil diperbarui.');
     }
@@ -85,6 +105,9 @@ class ProductController extends Controller
             'rating_avg' => ['required', 'numeric', 'min:0', 'max:5'],
             'rating_count' => ['required', 'integer', 'min:0'],
             'is_featured' => ['required', 'boolean'],
+            'marketplace_links' => ['nullable', 'array'],
+            'marketplace_links.*.marketplace' => ['nullable', 'string', 'max:100'],
+            'marketplace_links.*.url' => ['nullable', 'url', 'max:2000'],
         ]);
     }
 
@@ -104,5 +127,35 @@ class ProductController extends Controller
         }
 
         return $slug;
+    }
+
+    private function syncMarketplaceLinks(Product $product, array $links): void
+    {
+        $normalized = collect($links)
+            ->map(function ($item) {
+                return [
+                    'marketplace' => trim((string) ($item['marketplace'] ?? '')),
+                    'url' => trim((string) ($item['url'] ?? '')),
+                ];
+            })
+            ->filter(fn ($item) => $item['marketplace'] !== '' && $item['url'] !== '')
+            ->unique('marketplace')
+            ->values();
+
+        $keepMarketplaces = $normalized->pluck('marketplace')->all();
+
+        $product->marketplaceLinks()
+            ->whereNotIn('marketplace', $keepMarketplaces ?: ['__none__'])
+            ->delete();
+
+        foreach ($normalized as $item) {
+            MarketplaceLink::query()->updateOrCreate(
+                [
+                    'product_id' => $product->id,
+                    'marketplace' => $item['marketplace'],
+                ],
+                ['url' => $item['url']]
+            );
+        }
     }
 }

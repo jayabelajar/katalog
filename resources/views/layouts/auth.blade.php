@@ -21,8 +21,8 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full antialiased font-['Inter'] bg-white dark:bg-gray-950 selection:bg-indigo-100 dark:selection:bg-indigo-900/30">
-    <main>
+<body class="h-full antialiased font-['Inter'] bg-white dark:bg-gray-950 selection:bg-indigo-100 dark:selection:bg-indigo-900/30 overflow-x-hidden">
+    <main class="max-w-full overflow-x-hidden">
         @yield('content')
     </main>
 </body>
